@@ -6,14 +6,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
 
-enum operatorss{
 
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT
-
-}
 
 public class Tile {
 
@@ -25,14 +18,15 @@ public class Tile {
 	protected HashMap<Integer, Position> searchTree; // open state list
 	protected Vector<Position> knownPositions;//close state list
 	public static int counter;
-
+	private Position currentState;
+	private Vector<Position> nextPosition;//the upcoming positions
 	// ----------------------------- Constructors and initialize Methods ----------------------------- //
 
 	public Tile() {
 
 		this.sizeOfTile = 3; //This size of the tile matrix.
 		Tile.counter = 0;  //Advanced each time that a new position was created.
-		rand = new Random();
+		rand = new Random(3);
 		searchTree = new HashMap<Integer, Position>();
 		knownPositions = new Vector<Position>();
 		initializeFirstPosition();
@@ -49,6 +43,8 @@ public class Tile {
 		this.searchTree.put(position.getLocationInTree(), position);
 		this.knownPositions.add(position);
 		this.tileMatrix=tileFirstOrder;
+		currentState=position;
+		nextPosition=new Vector<>();
 
 	}
 
@@ -58,6 +54,8 @@ public class Tile {
 		int[] tileOreder = {0,1,2,3,4,5,6,7,8};
 		tileOreder = shuffleTileOrder(tileOreder);
 		int[][] tileRandomOrder = turnArrayToMatrix(tileOreder);
+		//int[][] tileRandomOrder = {{1,2,3},{4,5,6},{0,7,8}};
+
 		return tileRandomOrder;
 		//TODO check if this is a solved position - code below
 	}
@@ -104,12 +102,17 @@ public class Tile {
 
 	protected void expand(Position previousPosition) {
 
+		setCurrentState(previousPosition);
+
+
+
 		int [] operators = previousPosition.getOperators(); // Get the operators array.
 		int [][] matrix = new int[previousPosition.getState().length][];
 		for(int i = 0; i < previousPosition.getState().length; i++)
 			matrix[i] = previousPosition.getState()[i].clone();
 		int[] zeroLocation = identifyZeroLocation(matrix);
 
+		nextPosition.clear();
 		for(int i = 0 ; i < operators.length ; i++) { //Start loop over the operators.
 
 			int operator = i;
@@ -125,9 +128,10 @@ public class Tile {
 
 				Tile.counter++;
 				int[] newOperators = identifyOperators(swapedMatrix);
-				Position position = new Position(Tile.counter, swapedMatrix, 0, newOperators,previousPosition.getLocationInTree());
-				this.searchTree.put(Tile.counter, position); // A potential Bug !!! TODO - Fix this bug.
+				Position position = new Position(Tile.counter, swapedMatrix, previousPosition.cost+1, newOperators,previousPosition.getLocationInTree());
+				this.searchTree.put(Tile.counter, position);
 				this.knownPositions.add(previousPosition);
+				nextPosition.add(position);
 
 
 			}
@@ -135,6 +139,16 @@ public class Tile {
 		}
 
 	}
+	public void setNextPosition(Position pos){
+		nextPosition.clear();
+		//search in tree search for the positions that
+		for (Position p:searchTree.values()){
+			if(p.previousPosition==pos.locationInTree){
+				nextPosition.add(p);
+			}
+		}
+	}
+
 
 	// ---------------------------------------------------------------------------------------------------------------- //
 
@@ -186,7 +200,7 @@ public class Tile {
 
 			int[][] knownMatrix = knownPositions.get(i).getState();
 
-			if(checkMatrixForMatrix(matrixToCheck, knownMatrix)) {
+			if(!checkMatrixForMatrix(matrixToCheck, knownMatrix)) {
 
 				return true;
 
@@ -222,9 +236,9 @@ public class Tile {
 
 	// ----------------------------- Methods to identify if we arrived at the final state ----------------------------- //
 
-	public boolean identifyEndState(int[][] matrixToCheck) {
+	public boolean identifyGoalState(int[][] matrixToCheck) {
 
-		int[][] finalTile = {{0,1,2},{3,4,5},{6,7,8}};
+		int[][] finalTile = {{1,2,3},{4,5,6},{7,8,0}};
 
 		for(int i = 0 ; i < this.sizeOfTile ; i++) {
 
@@ -258,7 +272,7 @@ public class Tile {
 		int[] operators = new int[4];
 
 		if(zeroRowPosition == 0) {
-			operators[0] = 1;
+			operators[1] = 1;
 		}
 
 		if(zeroRowPosition > 0 && zeroRowPosition < 2) {
@@ -316,7 +330,7 @@ public class Tile {
 
 	public String toString(){
 		String s= "";
-		for (int[] row : tileMatrix)
+		for (int[] row : currentState.state)
 
 			// converting each row as string
 			// and then printing in a separate line
@@ -324,7 +338,19 @@ public class Tile {
 
 		return s;
 	}
+//----------------------------------------------------------------------------------------//
+//-----------------------------getters& setters------------------------------------------//
+	public void setCurrentState(Position position){
+		currentState=position;
+	}
+	public Position getCurrentState(){return currentState;}
 
+	public Vector<Position> getKNextPositions(){return nextPosition;}
+
+	public Position getPrevious(){
+		int location = currentState.previousPosition;
+		return searchTree.get(location);
+	}
 
 
 }

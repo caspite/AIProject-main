@@ -39,6 +39,9 @@ public class Position {
 		return operators;
 		
 	}
+	public double getCost(){
+		return (cost+hCost);
+	}
 	
 	// ------------------------------------------------------------------- // 
 
@@ -53,7 +56,7 @@ public class Position {
 	}
 
 	private void setHcost(int[][]state){
-		hCost=Heuristic.distanceOneNum(state,0);
+		hCost=Heuristic.penalty(state);
 
 
 	}
@@ -76,5 +79,17 @@ public class Position {
 
 		//return "g cost: "+cost+" h cost: "+hCost +" location in tree: "+locationInTree;
 	}
-	
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Position position = (Position) o;
+		return Arrays.equals(state, position.state);
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode(state);
+	}
 }
