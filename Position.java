@@ -8,6 +8,7 @@ public class Position {
 	int hCost;// the heuristic cost
 	int operators[];
 	int previousPosition;
+	boolean close; //if we visit in this position
 
 	
 	// ----------------------------- Constructors and initialize Methods ----------------------------- // 
@@ -20,6 +21,7 @@ public class Position {
 		this.operators = operators;
 		setHcost(state);
 		this.previousPosition=previousPosition;
+		close=false;
 	}
 	
 	// ------------------------------------------------------------------- // 

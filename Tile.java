@@ -26,7 +26,7 @@ public class Tile {
 
 		this.sizeOfTile = 3; //This size of the tile matrix.
 		Tile.counter = 0;  //Advanced each time that a new position was created.
-		rand = new Random(3);
+		rand = new Random(38);
 		searchTree = new HashMap<Integer, Position>();
 		knownPositions = new Vector<Position>();
 		initializeFirstPosition();
@@ -195,6 +195,7 @@ public class Tile {
 	}
 
 	protected boolean checkIfWeKnowThisMatrix(int[][] matrixToCheck) {
+		//return true if we know this state
 
 		for(int i = 0 ; i < this.knownPositions.size() ; i++) {
 
@@ -338,10 +339,20 @@ public class Tile {
 
 		return s;
 	}
+
+	public boolean finished(){
+		//loop all search tree and check if visit all positions
+		for(Position p:searchTree.values()){
+			if(p.close==false)
+				return false;
+		}
+		return true;
+	}
 //----------------------------------------------------------------------------------------//
 //-----------------------------getters& setters------------------------------------------//
 	public void setCurrentState(Position position){
 		currentState=position;
+		position.close=true;
 	}
 	public Position getCurrentState(){return currentState;}
 
@@ -349,7 +360,27 @@ public class Tile {
 
 	public Position getPrevious(){
 		int location = currentState.previousPosition;
-		return searchTree.get(location);
+		this.knownPositions.add(currentState);
+
+		if (location<=0)
+			return null;
+		else {
+			Position newPosition = searchTree.get(location);
+			setCurrentState(newPosition);
+			setNextPosition(newPosition);
+
+			return newPosition;
+		}
+
+	}
+
+	public int numClose(){
+		int i=0;
+		for(Position p:searchTree.values()){
+			if(p.close)
+				i++;
+		}
+		return i;
 	}
 
 
