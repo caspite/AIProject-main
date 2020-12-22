@@ -9,6 +9,7 @@ public class Position {
 	int operators[];
 	int previousPosition;
 	boolean close; //if we visit in this position
+	Position previousPosition1;//the previous position
 
 	
 	// ----------------------------- Constructors and initialize Methods ----------------------------- // 
@@ -87,8 +88,18 @@ public class Position {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Position position = (Position) o;
-		return Arrays.equals(state, position.state);
-	}
+
+
+			for (int i = 0; i < state.length; i++) {
+				for (int j = 0; j < state[i].length; j++) {
+					int b1 = state[i][j];
+					int b2 = position.state[i][j];
+					if (b1 != b2) return false;
+				}
+			}
+			return true;
+		}
+
 
 	@Override
 	public int hashCode() {

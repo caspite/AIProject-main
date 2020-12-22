@@ -1,11 +1,7 @@
 //import java.util.ArrayList;
 //import java.util.Arrays;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 //import java.util.List;
-import java.util.Random;
-import java.util.Vector;
-
 
 
 public class Tile {
@@ -15,7 +11,7 @@ public class Tile {
 	int tileMatrix[][];//game board
 	int sizeOfTile;//board size
 	Random rand;
-	protected HashMap<Integer, Position> searchTree; // open state list
+	protected TreeMap<Integer, Position> searchTree; // open state list
 	protected Vector<Position> knownPositions;//close state list
 	public static int counter;
 	private Position currentState;
@@ -27,7 +23,7 @@ public class Tile {
 		this.sizeOfTile = 3; //This size of the tile matrix.
 		Tile.counter = 0;  //Advanced each time that a new position was created.
 		rand = new Random(38);
-		searchTree = new HashMap<Integer, Position>();
+		searchTree = new TreeMap<Integer, Position>();
 		knownPositions = new Vector<Position>();
 		initializeFirstPosition();
 
@@ -125,13 +121,23 @@ public class Tile {
 				swapedMatrix = temp.clone(); //Perform the swap and get the new matrix.
 				//boolean knownMatrix = checkIfWeKnowThisMatrix(swapedMatrix);
 				//if(knownMatrix == false) { //We dont know this matrix
-
-				Tile.counter++;
+				//check that the next position will not be equal the previous position
+				int location =previousPosition.previousPosition;
+				Position pos =searchTree.get(location);
 				int[] newOperators = identifyOperators(swapedMatrix);
+				Tile.counter++;
 				Position position = new Position(Tile.counter, swapedMatrix, previousPosition.cost+1, newOperators,previousPosition.getLocationInTree());
-				this.searchTree.put(Tile.counter, position);
-				this.knownPositions.add(previousPosition);
-				nextPosition.add(position);
+				position.previousPosition1=previousPosition;
+				if(!position.equals(pos)){
+
+					this.searchTree.put(Tile.counter, position);
+					this.knownPositions.add(previousPosition);
+					nextPosition.add(position);
+				}
+
+
+
+
 
 
 			}
@@ -141,9 +147,14 @@ public class Tile {
 	}
 	public void setNextPosition(Position pos){
 		nextPosition.clear();
-		//search in tree search for the positions that
+		//search in tree search for the positions to add next
 		for (Position p:searchTree.values()){
 			if(p.previousPosition==pos.locationInTree){
+				//check that the next position will not be equal the previous position
+				if(searchTree.get(pos.previousPosition).state.equals(p.state)){
+					continue;
+				}
+				else
 				nextPosition.add(p);
 			}
 		}
@@ -348,7 +359,21 @@ public class Tile {
 		}
 		return true;
 	}
-//----------------------------------------------------------------------------------------//
+
+	public void bound(Position p){
+		//search children and remove from search tree
+		searchTree.remove(p.locationInTree);
+		for(int i=0;i<searchTree.size();i++){
+			if(searchTree.get(i)!=null){
+				if(searchTree.get(i).previousPosition1==p){
+					Position p1=searchTree.get(i);
+					bound(p1);
+				}
+			}
+		}
+	}
+
+	//----------------------------------------------------------------------------------------//
 //-----------------------------getters& setters------------------------------------------//
 	public void setCurrentState(Position position){
 		currentState=position;
@@ -359,7 +384,9 @@ public class Tile {
 	public Vector<Position> getKNextPositions(){return nextPosition;}
 
 	public Position getPrevious(){
+		bound(currentState);
 		int location = currentState.previousPosition;
+		currentState.close=true;
 		this.knownPositions.add(currentState);
 
 		if (location<=0)
