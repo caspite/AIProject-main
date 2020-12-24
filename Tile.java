@@ -22,7 +22,7 @@ public class Tile {
 
 		this.sizeOfTile = 3; //This size of the tile matrix.
 		Tile.counter = 0;  //Advanced each time that a new position was created.
-		rand = new Random(38);
+		rand = new Random();
 		searchTree = new TreeMap<Integer, Position>();
 		knownPositions = new Vector<Position>();
 		initializeFirstPosition();
@@ -101,7 +101,6 @@ public class Tile {
 		setCurrentState(previousPosition);
 
 
-
 		int [] operators = previousPosition.getOperators(); // Get the operators array.
 		int [][] matrix = new int[previousPosition.getState().length][];
 		for(int i = 0; i < previousPosition.getState().length; i++)
@@ -132,13 +131,16 @@ public class Tile {
 
 					this.searchTree.put(Tile.counter, position);
 					this.knownPositions.add(previousPosition);
-					nextPosition.add(position);
+					if(previousPosition.previousPosition1!=null){
+						if(previousPosition.previousPosition1.state!=position.state){
+							nextPosition.add(position);
+						}
+
+					}
+					else if (previousPosition.previousPosition1==null)
+						nextPosition.add(position);
+
 				}
-
-
-
-
-
 
 			}
 
@@ -149,9 +151,9 @@ public class Tile {
 		nextPosition.clear();
 		//search in tree search for the positions to add next
 		for (Position p:searchTree.values()){
-			if(p.previousPosition==pos.locationInTree){
+			if(p.previousPosition1==pos){
 				//check that the next position will not be equal the previous position
-				if(searchTree.get(pos.previousPosition).state.equals(p.state)){
+				if(p.previousPosition1.previousPosition1.state.equals(p.state)){
 					continue;
 				}
 				else
@@ -384,15 +386,15 @@ public class Tile {
 	public Vector<Position> getKNextPositions(){return nextPosition;}
 
 	public Position getPrevious(){
-		bound(currentState);
 		int location = currentState.previousPosition;
 		currentState.close=true;
 		this.knownPositions.add(currentState);
+		bound(currentState);
 
 		if (location<=0)
 			return null;
 		else {
-			Position newPosition = searchTree.get(location);
+			Position newPosition = currentState.previousPosition1;
 			setCurrentState(newPosition);
 			setNextPosition(newPosition);
 

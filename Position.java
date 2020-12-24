@@ -59,7 +59,10 @@ public class Position {
 	}
 
 	private void setHcost(int[][]state){
-		hCost=Heuristic.penalty(state);
+		hCost=Heuristic.calcPenalty(state);
+		//hCost=Heuristic.calcManhattanDistanceCost(state);
+		//hCost=Heuristic.calManhattanInPhase(state);
+
 
 
 	}
